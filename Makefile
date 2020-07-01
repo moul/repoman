@@ -23,12 +23,12 @@ _do.maintenance: _do.checkoutmaster
 	mkdir -p .github
 	git mv renovate.json .github/renovate.json || true
 	git rm -f renovate.json || true
-	cp ~/go/src/moul.io/golang-repo-template/.github/renovate.json .github/
+	cp ~/go/src/moul.io/golang-repo-template/.github/renovate.json .github/ || true
 	git add .github/renovate.json || true
 	git add renovate.json || true
 
 	# rules.mk
-	if [ -f rules.mk ]; then cp ~/go/src/moul.io/rules.mk/rules.mk .; fi
+	if [ -f rules.mk ]; then cp ~/go/src/moul.io/rules.mk/rules.mk .; fi || true
 
 	# authors
 	if [ -f rules.mk ]; then make generate.authors; fi
