@@ -31,7 +31,7 @@ _do.maintenance: _do.checkoutmaster
 	if [ -f rules.mk ]; then cp ~/go/src/moul.io/rules.mk/rules.mk .; fi || true
 
 	# authors
-	if [ -f rules.mk ]; then make generate.authors; fi
+	if [ -f rules.mk ]; then make generate.authors; git add AUTHORS; fi || true
 
 	# apply changes
 	git diff
