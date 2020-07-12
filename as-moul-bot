@@ -5,4 +5,4 @@ GIT_COMMITTER_NAME="moul-bot" \
 GIT_AUTHOR_EMAIL="bot@moul.io" \
 GIT_COMMITTER_EMAIL="bot@moul.io" \
 GITHUB_TOKEN="`cat ~/.config/hub-moul-bot | grep oauth_token | awk '{print $2}'`" \
-$@
+"$@"
