@@ -1,12 +1,13 @@
 COMMANDS = hubsync checkoutmaster maintenance prlist
 REPOS ?= $(wildcard */)
 OPTS ?= ;
+REPOMAN ?= ~/go/src/moul.io/repoman
 
 .PHONY: $(COMMANDS)
 $(COMMANDS):
 	@for repo in $(REPOS); do ( set -e; \
-	  echo "cd $$repo && make -s -f ../Makefile _do.$@ $(OPTS)"; \
-	  cd $$repo && make -s -f ../Makefile _do.$@ $(OPTS) \
+	  echo "cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS)"; \
+	  cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS) \
 	); done
 
 _do.checkoutmaster: _do.hubsync
@@ -33,6 +34,10 @@ _do.maintenance: _do.checkoutmaster
 	# authors
 	if [ -f rules.mk ]; then make generate.authors; git add AUTHORS; fi || true
 
+	# golangci-lint fix
+	sed -i "s/version: v1.26/version: v1.28/" .github/workflows/*.yml
+	sed -i "s/version: v1.27/version: v1.28/" .github/workflows/*.yml
+
 	# apply changes
 	git diff
 	git diff --cached
@@ -41,4 +46,4 @@ _do.maintenance: _do.checkoutmaster
 	git status
 	git commit -s -a -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman"
 	git push -u origin dev/moul/maintenance -f
-	hub pull-request -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman" || $(MAKE) -f ../Makefile _do.prlist
+	hub pull-request -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman" || $(MAKE) -f $(REPOMAN)/Makefile _do.prlist
