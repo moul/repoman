@@ -34,9 +34,17 @@ _do.maintenance: _do.checkoutmaster
 	# authors
 	if [ -f rules.mk ]; then make generate.authors; git add AUTHORS; fi || true
 
+	# copyright
+	sed -i "s/© 2014 /© 2014-2020 /" README.md
+	sed -i "s/© 2015 /© 2015-2020 /" README.md
+	sed -i "s/© 2016 /© 2016-2020 /" README.md
+	sed -i "s/© 2017 /© 2017-2020 /" README.md
+	sed -i "s/© 2018 /© 2018-2020 /" README.md
+	sed -i "s/© 2019 /© 2019-2020 /" README.md
+
 	# golangci-lint fix
-	sed -i "s/version: v1.26/version: v1.28/" .github/workflows/*.yml
-	sed -i "s/version: v1.27/version: v1.28/" .github/workflows/*.yml
+	sed -i "s/version: v1.26/version: v1.28/" .github/workflows/*.yml || true
+	sed -i "s/version: v1.27/version: v1.28/" .github/workflows/*.yml || true
 
 	# apply changes
 	git diff
