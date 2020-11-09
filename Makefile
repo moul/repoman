@@ -28,6 +28,10 @@ _do.maintenance: _do.checkoutmaster
 	git add .github/renovate.json || true
 	git add renovate.json || true
 
+	# dependabot
+	cp ~/go/src/moul.io/golang-repo-template/.github/dependabot.yml .github/ || true
+	git add .github/dependabot.yml || true
+
 	# rules.mk
 	if [ -f rules.mk ]; then cp ~/go/src/moul.io/rules.mk/rules.mk .; fi || true
 
