@@ -39,12 +39,22 @@ _do.maintenance: _do.checkoutmaster
 	if [ -f rules.mk ]; then make generate.authors; git add AUTHORS; fi || true
 
 	# copyright
-	sed -i "s/© 2014 /© 2014-2020 /" README.md
-	sed -i "s/© 2015 /© 2015-2020 /" README.md
-	sed -i "s/© 2016 /© 2016-2020 /" README.md
-	sed -i "s/© 2017 /© 2017-2020 /" README.md
-	sed -i "s/© 2018 /© 2018-2020 /" README.md
-	sed -i "s/© 2019 /© 2019-2020 /" README.md
+	set -xe; \
+	for prefix in "©" "Copyright" "Copyright (c)"; do \
+	  for file in README.md LICENSE-APACHE LICENSE-MIT LICENSE COPYRIGHT; do \
+	    if [ -f "$$file" ]; then \
+				sed -i "s/$$prefix 2014 /$$prefix 2014-2021 /" $$file; \
+			  sed -i "s/$$prefix 2015 /$$prefix 2015-2021 /" $$file; \
+			  sed -i "s/$$prefix 2016 /$$prefix 2016-2021 /" $$file; \
+	      sed -i "s/$$prefix 2017 /$$prefix 2017-2021 /" $$file; \
+	      sed -i "s/$$prefix 2018 /$$prefix 2018-2021 /" $$file; \
+	      sed -i "s/$$prefix 2019 /$$prefix 2019-2021 /" $$file; \
+	      sed -i "s/$$prefix 2020 /$$prefix 2020-2021 /" $$file; \
+	      sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9]/$$prefix \1-2021 /" $$file; \
+	      sed -i "s/$$prefix 2021-2021/$$prefix 2021 /" $$file; \
+	    fi; \
+	  done; \
+	done
 
 	# golangci-lint fix
 	sed -i "s/version: v1.26/version: v1.28/" .github/workflows/*.yml || true
