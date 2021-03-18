@@ -6,8 +6,8 @@ REPOMAN ?= ~/go/src/moul.io/repoman
 .PHONY: $(COMMANDS)
 $(COMMANDS):
 	@for repo in $(REPOS); do ( set -e; \
-	  echo "cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS)"; \
-	  cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS) \
+		echo "cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS)"; \
+		cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS) \
 	); done
 
 _do.checkoutmaster: _do.hubsync
@@ -41,24 +41,25 @@ _do.maintenance: _do.checkoutmaster
 	# copyright
 	set -xe; \
 	for prefix in "©" "Copyright" "Copyright (c)"; do \
-	  for file in README.md LICENSE-APACHE LICENSE-MIT LICENSE COPYRIGHT; do \
-	    if [ -f "$$file" ]; then \
+		for file in README.md LICENSE-APACHE LICENSE-MIT LICENSE COPYRIGHT; do \
+			if [ -f "$$file" ]; then \
 				sed -i "s/$$prefix 2014 /$$prefix 2014-2021 /" $$file; \
-			  sed -i "s/$$prefix 2015 /$$prefix 2015-2021 /" $$file; \
-			  sed -i "s/$$prefix 2016 /$$prefix 2016-2021 /" $$file; \
-	      sed -i "s/$$prefix 2017 /$$prefix 2017-2021 /" $$file; \
-	      sed -i "s/$$prefix 2018 /$$prefix 2018-2021 /" $$file; \
-	      sed -i "s/$$prefix 2019 /$$prefix 2019-2021 /" $$file; \
-	      sed -i "s/$$prefix 2020 /$$prefix 2020-2021 /" $$file; \
-	      sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9]/$$prefix \1-2021 /" $$file; \
-	      sed -i "s/$$prefix 2021-2021/$$prefix 2021 /" $$file; \
-	    fi; \
-	  done; \
+				sed -i "s/$$prefix 2015 /$$prefix 2015-2021 /" $$file; \
+				sed -i "s/$$prefix 2016 /$$prefix 2016-2021 /" $$file; \
+				sed -i "s/$$prefix 2017 /$$prefix 2017-2021 /" $$file; \
+				sed -i "s/$$prefix 2018 /$$prefix 2018-2021 /" $$file; \
+				sed -i "s/$$prefix 2019 /$$prefix 2019-2021 /" $$file; \
+				sed -i "s/$$prefix 2020 /$$prefix 2020-2021 /" $$file; \
+				sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9]/$$prefix \1-2021 /" $$file; \
+				sed -i "s/$$prefix 2021-2021/$$prefix 2021 /" $$file; \
+			fi; \
+		done; \
 	done
 
 	# golangci-lint fix
-	sed -i "s/version: v1.26/version: v1.28/" .github/workflows/*.yml || true
-	sed -i "s/version: v1.27/version: v1.28/" .github/workflows/*.yml || true
+	sed -i "s/version: v1.26/version: v1.38/" .github/workflows/*.yml || true
+	sed -i "s/version: v1.27/version: v1.38/" .github/workflows/*.yml || true
+	sed -i "s/version: v1.28/version: v1.38/" .github/workflows/*.yml || true
 
 	# apply changes
 	git diff
