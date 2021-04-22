@@ -50,7 +50,7 @@ _do.maintenance: _do.checkoutmaster
 				sed -i "s/$$prefix 2018 /$$prefix 2018-2021 /" $$file; \
 				sed -i "s/$$prefix 2019 /$$prefix 2019-2021 /" $$file; \
 				sed -i "s/$$prefix 2020 /$$prefix 2020-2021 /" $$file; \
-				sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9]/$$prefix \1-2021 /" $$file; \
+				sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9] /$$prefix \1-2021 /" $$file; \
 				sed -i "s/$$prefix 2021-2021/$$prefix 2021 /" $$file; \
 			fi; \
 		done; \
