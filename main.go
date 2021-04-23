@@ -21,10 +21,10 @@ func main() {
 }
 
 type Opts struct {
-	Path        string
-	Maintenance struct{}
-	Doctor      struct{}
-	Version     struct{}
+	Path        string   `json:"Path,omitempty"`
+	Maintenance struct{} `json:"Maintenance,omitempty"`
+	Doctor      struct{} `json:"Doctor,omitempty"`
+	Version     struct{} `json:"Version,omitempty"`
 }
 
 var (
@@ -52,7 +52,7 @@ func run(args []string) error {
 	// init logger
 	{
 		var err error
-		logger, err = zapconfig.Configurator{}.Build()
+		logger, err = (&zapconfig.Configurator{}).SetPreset("light-console").Build()
 		if err != nil {
 			return err
 		}

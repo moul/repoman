@@ -6,11 +6,15 @@ import (
 
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+	"moul.io/u"
 )
 
 func doMaintenance(ctx context.Context, args []string) error {
+	paths := u.UniqueStrings(args)
 	g, ctx := errgroup.WithContext(ctx)
-	for _, path := range args {
+	logger.Debug("doMaintenance", zap.Any("opts", opts), zap.Strings("projects", paths))
+
+	for _, path := range paths {
 		path := path
 		g.Go(func() error {
 			err := doMaintenanceOnce(ctx, path)
@@ -28,7 +32,6 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 	if err != nil {
 		return fmt.Errorf("invalid project: %w", err)
 	}
-	logger.Debug("doMaintenance", zap.Any("opts", opts), zap.Any("project", project))
 
 	if project.Git.IsDirty {
 		return fmt.Errorf("worktree is dirty, please commit or discard changes before running a maintenance") // nolint:goerr113
