@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -72,8 +73,18 @@ func projectFromPath(path string) (*project, error) {
 		// main branch
 		{
 			ref, err := project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
-			if err != nil {
-				return nil, fmt.Errorf("failed to get main branch: %w", err)
+			if err != nil { // if it fails, we try to fetch origin and then we retry
+				err = project.Git.origin.Fetch(&git.FetchOptions{
+					Depth:    1,
+					Progress: os.Stdout,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch origin: %w", err)
+				}
+				ref, err = project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get main branch: %w", err)
+				}
 			}
 			project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
 		}
