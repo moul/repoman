@@ -19,10 +19,14 @@ type project struct {
 		MainBranch    string
 		CurrentBranch string
 		OriginRemotes []string
+		InMainBranch  bool
+		IsDirty       bool
 
-		head   *plumbing.Reference
-		repo   *git.Repository
-		origin *git.Remote
+		head     *plumbing.Reference
+		repo     *git.Repository
+		origin   *git.Remote
+		workTree *git.Worktree
+		status   git.Status
 	}
 }
 
@@ -87,6 +91,28 @@ func projectFromPath(path string) (*project, error) {
 				}
 			}
 			project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
+		}
+		if project.Git.MainBranch != "" && project.Git.CurrentBranch != "" {
+			project.Git.InMainBranch = project.Git.MainBranch == project.Git.CurrentBranch
+		}
+
+		// work tree
+		{
+			workTree, err := project.Git.repo.Worktree()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get worktree: %w", err)
+			}
+			project.Git.workTree = workTree
+		}
+
+		// status
+		{
+			status, err := project.Git.workTree.Status()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get status: %w", err)
+			}
+			project.Git.status = status
+			project.Git.IsDirty = !status.IsClean()
 		}
 	} else {
 		logger.Warn("project not within a git directory", zap.String("path", path))

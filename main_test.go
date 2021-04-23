@@ -7,7 +7,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	err := run([]string{"doctor", "-p", "."})
+	err := run([]string{"doctor", "."})
 	if err != nil {
 		t.Fatalf("err should be nil: %v", err)
 	}
