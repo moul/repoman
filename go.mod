@@ -3,10 +3,8 @@ module moul.io/repoman
 go 1.13
 
 require (
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/go-git/go-git/v5 v5.3.0
 	github.com/peterbourgon/ff/v3 v3.0.0
-	github.com/progrium/go-basher v5.1.2+incompatible
 	github.com/tailscale/depaware v0.0.0-20201214215404-77d1e9757027
 	go.uber.org/goleak v1.1.10
 	go.uber.org/zap v1.16.0
