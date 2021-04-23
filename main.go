@@ -15,16 +15,18 @@ import (
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "error: %+v\n", err)
 		os.Exit(1)
 	}
 }
 
 type Opts struct {
-	Path        string   `json:"Path,omitempty"`
-	Maintenance struct{} `json:"Maintenance,omitempty"`
-	Doctor      struct{} `json:"Doctor,omitempty"`
-	Version     struct{} `json:"Version,omitempty"`
+	Path        string
+	Maintenance struct {
+		NoFetch bool
+	}
+	Doctor  struct{}
+	Version struct{}
 }
 
 var (
@@ -48,6 +50,7 @@ func run(args []string) error {
 	setupRootFlags(rootFs)
 	setupRootFlags(doctorFs)
 	setupRootFlags(maintenanceFs)
+	maintenanceFs.BoolVar(&opts.Maintenance.NoFetch, "no-fetch", false, "do not fetch origin")
 
 	// init logger
 	{

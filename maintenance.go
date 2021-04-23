@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"github.com/go-git/go-git/v5"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"moul.io/u"
@@ -14,17 +17,20 @@ func doMaintenance(ctx context.Context, args []string) error {
 	g, ctx := errgroup.WithContext(ctx)
 	logger.Debug("doMaintenance", zap.Any("opts", opts), zap.Strings("projects", paths))
 
+	var errs error
+
 	for _, path := range paths {
 		path := path
 		g.Go(func() error {
 			err := doMaintenanceOnce(ctx, path)
 			if err != nil {
-				return fmt.Errorf("%q: %w", path, err)
+				errs = multierr.Append(errs, fmt.Errorf("%q: %w", path, err))
 			}
 			return nil
 		})
 	}
-	return g.Wait()
+	_ = g.Wait()
+	return errs
 }
 
 func doMaintenanceOnce(_ context.Context, path string) error {
@@ -37,11 +43,28 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		return fmt.Errorf("worktree is dirty, please commit or discard changes before running a maintenance") // nolint:goerr113
 	}
 
+	if !opts.Maintenance.NoFetch {
+		logger.Debug("fetch origin", zap.String("project", project.Path))
+		err := project.Git.origin.Fetch(&git.FetchOptions{
+			Progress: os.Stderr,
+		})
+		switch err {
+		case git.NoErrAlreadyUpToDate:
+			// skip
+		case nil:
+			// skip
+		default:
+			return fmt.Errorf("failed to fetch origin: %w", err)
+		}
+	}
+
 	if !project.Git.InMainBranch {
-		logger.Info("project is not using the main branch",
+		logger.Debug("project is not using the main branch",
 			zap.String("current", project.Git.CurrentBranch),
 			zap.String("main", project.Git.MainBranch),
 		)
+
+		// TODO: checkout
 	}
 
 	// - repoman.yml ->
@@ -49,6 +72,7 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 	//   - exclude: - README.md
 	//   - no-main / lib-only
 	// - auto update from template
+	// - open PR / update existing one
 
 	// COMMANDS = hubsync checkoutmaster maintenance prlist
 	// REPOS ?= $(wildcard */)

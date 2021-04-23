@@ -13,6 +13,7 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/tailscale/depaware v0.0.0-20201214215404-77d1e9757027
 	go.uber.org/goleak v1.1.10
+	go.uber.org/multierr v1.6.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
