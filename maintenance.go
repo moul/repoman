@@ -39,6 +39,10 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		return fmt.Errorf("invalid project: %w", err)
 	}
 
+	if project.Git.Root == "" {
+		return fmt.Errorf("not implemented: maintenance over non-git projects")
+	}
+
 	if project.Git.IsDirty {
 		return fmt.Errorf("worktree is dirty, please commit or discard changes before running a maintenance") // nolint:goerr113
 	}
@@ -65,6 +69,7 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		)
 
 		// TODO: checkout
+		return fmt.Errorf("not implemented: git checkout master/main")
 	}
 
 	// - repoman.yml ->
@@ -73,27 +78,6 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 	//   - no-main / lib-only
 	// - auto update from template
 	// - open PR / update existing one
-
-	// COMMANDS = hubsync checkoutmaster maintenance prlist
-	// REPOS ?= $(wildcard */)
-	// OPTS ?= ;
-	// REPOMAN ?= ~/go/src/moul.io/repoman
-	//
-	// .PHONY: $(COMMANDS)
-	// $(COMMANDS):
-	//	@for repo in $(REPOS); do ( set -e; \
-	//		echo "cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS)"; \
-	//		cd $$repo && make -s -f $(REPOMAN)/Makefile _do.$@ $(OPTS) \
-	//	); done
-	//
-	// _do.checkoutmaster: _do.hubsync
-	//	git checkout master
-	//
-	// _do.hubsync:
-	//	hub sync
-	//
-	// _do.prlist:
-	//	@hub pr list -f "- %pC%>(8)%i%Creset %U - %t% l%n"
 	//
 	// _do.maintenance: _do.checkoutmaster
 	//	# renovate.json
