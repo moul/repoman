@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
+	hub "github.com/github/hub/github"
 	"github.com/go-git/go-git/v5"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -70,6 +72,7 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		)
 
 		// TODO: checkout
+		// TODO: pull
 		return fmt.Errorf("not implemented: git checkout master/main")
 	}
 
@@ -107,16 +110,16 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 			set -xe; \
 			for prefix in "©" "Copyright" "Copyright (c)"; do \
 				for file in README.md LICENSE-APACHE LICENSE-MIT LICENSE COPYRIGHT; do \
-					if [ -f "$$file" ]; then \
-						sed -i "s/$$prefix 2014 /$$prefix 2014-2021 /" $$file; \
-						sed -i "s/$$prefix 2015 /$$prefix 2015-2021 /" $$file; \
-						sed -i "s/$$prefix 2016 /$$prefix 2016-2021 /" $$file; \
-						sed -i "s/$$prefix 2017 /$$prefix 2017-2021 /" $$file; \
-						sed -i "s/$$prefix 2018 /$$prefix 2018-2021 /" $$file; \
-						sed -i "s/$$prefix 2019 /$$prefix 2019-2021 /" $$file; \
-						sed -i "s/$$prefix 2020 /$$prefix 2020-2021 /" $$file; \
-						sed -i "s/$$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9] /$$prefix \1-2021 /" $$file; \
-						sed -i "s/$$prefix 2021-2021/$$prefix 2021 /" $$file; \
+					if [ -f "$file" ]; then \
+						sed -i "s/$prefix 2014 /$prefix 2014-2021 /" $file; \
+						sed -i "s/$prefix 2015 /$prefix 2015-2021 /" $file; \
+						sed -i "s/$prefix 2016 /$prefix 2016-2021 /" $file; \
+						sed -i "s/$prefix 2017 /$prefix 2017-2021 /" $file; \
+						sed -i "s/$prefix 2018 /$prefix 2018-2021 /" $file; \
+						sed -i "s/$prefix 2019 /$prefix 2019-2021 /" $file; \
+						sed -i "s/$prefix 2020 /$prefix 2020-2021 /" $file; \
+						sed -i "s/$prefix \([0-9][0-9][0-9][0-9]\)-20[0-9][0-9] /$prefix \1-2021 /" $file; \
+						sed -i "s/$prefix 2021-2021/$prefix 2021 /" $file; \
 					fi; \
 				done; \
 			done
@@ -134,7 +137,7 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 			git status
 			git commit -s -a -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman"
 			git push -u origin dev/moul/maintenance -f
-			hub pull-request -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman" || $(MAKE) -f $(REPOMAN)/Makefile _do.prlist
+			hub pull-request -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman" || hub pr list -f "- %pC%>(8)%i%Creset %U - %t% l%n"
 		}
 		main
 	`
@@ -144,6 +147,9 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		cmd.Stdout = os.Stderr
 		cmd.Stderr = os.Stderr
 		cmd.Dir = project.Path
+		initMoulBotEnv()
+		cmd.Env = os.Environ()
+
 		err := cmd.Run()
 		if err != nil {
 			return fmt.Errorf("script execution failed: %w", err)
@@ -151,4 +157,18 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 	}
 
 	return nil
+}
+
+func initMoulBotEnv() {
+	if os.Getenv("REPOMAN_INITED") == "true" {
+		return
+	}
+	os.Setenv("REPOMAN_INITED", "true")
+	os.Setenv("GIT_AUTHOR_NAME", "moul-bot")
+	os.Setenv("GIT_COMMITTER_NAME", "moul-bot")
+	os.Setenv("GIT_AUTHOR_EMAIL", "bot@moul.io")
+	os.Setenv("GIT_COMMITTER_EMAIL", "bot@moul.io")
+	os.Setenv("HUB_CONFIG", filepath.Join(os.Getenv("HOME"), ".config", "hub-moul-bot"))
+	config := hub.CurrentConfig()
+	os.Setenv("GITHUB_TOKEN", config.Hosts[0].AccessToken)
 }
