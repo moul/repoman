@@ -3,7 +3,7 @@ module moul.io/repoman
 go 1.13
 
 require (
-	github.com/Microsoft/go-winio v0.4.19 // indirect
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/github/hub v2.11.2+incompatible
@@ -22,6 +22,8 @@ require (
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210423185535-09eb48e85fd7 // indirect
+	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	moul.io/motd v1.0.0
 	moul.io/srand v1.6.1
 	moul.io/u v1.21.0
