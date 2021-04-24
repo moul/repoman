@@ -76,7 +76,18 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		return fmt.Errorf("not implemented: git checkout master/main")
 	}
 
-	// TODO: check if the worktree looks like the corresponding template
+	// check if the project looks like a one that can be maintained by repoman
+	{
+		var errs error
+		for _, expected := range []string{"Makefile", "rules.mk"} {
+			if !u.FileExists(filepath.Join(project.Path, expected)) {
+				errs = multierr.Append(errs, fmt.Errorf("missing file: %q", expected))
+			}
+		}
+		if errs != nil {
+			return fmt.Errorf("project is not compatible with repoman: %w", errs)
+		}
+	}
 
 	// TODO
 	// - repoman.yml ->
