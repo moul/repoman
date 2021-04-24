@@ -70,10 +70,25 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 			zap.String("current", project.Git.CurrentBranch),
 			zap.String("main", project.Git.MainBranch),
 		)
+		mainBranch, err := project.Git.repo.Branch(project.Git.MainBranch)
+		if err != nil {
+			return fmt.Errorf("failed to get ref for main branch: %q: %w", project.Git.MainBranch, err)
+		}
 
-		// TODO: checkout
-		// TODO: pull
-		return fmt.Errorf("not implemented: git checkout master/main")
+		err = project.Git.workTree.Checkout(&git.CheckoutOptions{
+			Branch: mainBranch.Merge,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to checkout main branch: %q: %w", project.Git.MainBranch, err)
+		}
+
+		err = project.Git.workTree.Pull(&git.PullOptions{})
+		switch err {
+		case git.NoErrAlreadyUpToDate: // skip
+		case nil: // skip
+		default:
+			return fmt.Errorf("failed to pull main branch: %q: %w", project.Git.MainBranch, err)
+		}
 	}
 
 	// check if the project looks like a one that can be maintained by repoman
