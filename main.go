@@ -23,7 +23,11 @@ func main() {
 type Opts struct {
 	Path        string
 	Maintenance struct {
-		NoFetch bool
+		CheckoutMainBranch bool
+		NoFetch            bool
+		BumpDeps           bool
+		Standard           bool
+		ShowDiff           bool
 	}
 	Doctor  struct{}
 	Version struct{}
@@ -34,6 +38,7 @@ var (
 	doctorFs      = flag.NewFlagSet("doctor", flag.ExitOnError)
 	maintenanceFs = flag.NewFlagSet("maintenance", flag.ExitOnError)
 	versionFs     = flag.NewFlagSet("version", flag.ExitOnError)
+	bumpDepsFs    = flag.NewFlagSet("bump-deps", flag.ExitOnError)
 	opts          Opts
 
 	logger *zap.Logger
@@ -50,7 +55,12 @@ func run(args []string) error {
 	setupRootFlags(rootFs)
 	setupRootFlags(doctorFs)
 	setupRootFlags(maintenanceFs)
+	setupRootFlags(bumpDepsFs)
+	maintenanceFs.BoolVar(&opts.Maintenance.CheckoutMainBranch, "checkout-main-branch", true, "switch to the main branch before applying the maintenance")
 	maintenanceFs.BoolVar(&opts.Maintenance.NoFetch, "no-fetch", false, "do not fetch origin")
+	maintenanceFs.BoolVar(&opts.Maintenance.BumpDeps, "bump-deps", false, "bump dependencies")
+	maintenanceFs.BoolVar(&opts.Maintenance.Standard, "std", true, "standard maintenance tasks")
+	maintenanceFs.BoolVar(&opts.Maintenance.ShowDiff, "show-diff", true, "display git diff of the changes")
 
 	// init logger
 	{
