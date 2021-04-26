@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	hub "github.com/github/hub/github"
+	hub "github.com/github/hub/v2/github"
 	"github.com/go-git/go-git/v5"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
