@@ -4,9 +4,8 @@ go 1.13
 
 require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/github/hub v2.11.2+incompatible
+	github.com/github/hub/v2 v2.14.3-0.20210319163717-c8e68d548a39
 	github.com/go-git/go-billy/v5 v5.2.0 // indirect
 	github.com/go-git/go-git/v5 v5.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
