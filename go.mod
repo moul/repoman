@@ -25,6 +25,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	moul.io/motd v1.0.0
 	moul.io/srand v1.6.1
-	moul.io/u v1.21.0
+	moul.io/u v1.22.0
 	moul.io/zapconfig v1.3.0
 )
