@@ -1,6 +1,6 @@
 # repoman
 
-:smile: repoman
+📋 repo manager: some scripts I run against my repos
 
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white)](https://pkg.go.dev/moul.io/repoman)
 [![License](https://img.shields.io/badge/license-Apache--2.0%20%2F%20MIT-%2397ca00.svg)](https://github.com/moul/repoman/blob/main/COPYRIGHT)
@@ -22,14 +22,28 @@
 
 [embedmd]:# (.tmp/usage.txt console)
 ```console
-foo@bar:~$ repoman hello world
-            _                                                   _                      _        _
- __ _  ___ | | __ _  _ _   __ _  ___  _ _  ___  _ __  ___  ___ | |_  ___  _ __   _ __ | | __ _ | |_  ___
-/ _` |/ _ \| |/ _` || ' \ / _` ||___|| '_|/ -_)| '_ \/ _ \|___||  _|/ -_)| '  \ | '_ \| |/ _` ||  _|/ -_)
-\__, |\___/|_|\__,_||_||_|\__, |     |_|  \___|| .__/\___/      \__|\___||_|_|_|| .__/|_|\__,_| \__|\___|
-|___/                     |___/                |_|                              |_|
-12 CPUs, /home/moul/.gvm/pkgsets/go1.16/global/bin/repoman, fwrz, go1.16
-args ["repoman","hello","world"]
+foo@bar:~$ repoman -h
+USAGE
+  repoman
+
+SUBCOMMANDS
+  doctor       perform various checks (read-only)
+  maintenance  perform various maintenance tasks (write)
+  version      show version and build info
+```
+
+[embedmd]:# (.tmp/usage-maintenance.txt console)
+```console
+foo@bar:~$ repoman maintenance -h
+USAGE
+  maintenance
+
+FLAGS
+  -bump-deps false            bump dependencies
+  -checkout-main-branch true  switch to the main branch before applying the maintenance
+  -no-fetch false             do not fetch origin
+  -show-diff true             display git diff of the changes
+  -std true                   standard maintenance tasks
 ```
 
 ## Install
