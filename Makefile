@@ -12,7 +12,7 @@ generate: install
 	echo 'foo@bar:~$$ repoman -h' > .tmp/usage.txt
 	repoman -h 2>> .tmp/usage.txt
 
-	for sub in maintenance doctor version; do \
+	for sub in maintenance doctor version template-post-clone; do \
 	  echo 'foo@bar:~$$ repoman '$$sub' -h' > .tmp/usage-$$sub.txt; \
 	  repoman $$sub -h 2>> .tmp/usage-$$sub.txt; \
 	done

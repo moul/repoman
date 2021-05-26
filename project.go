@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
+	"moul.io/multipmuri"
 	"moul.io/u"
 )
 
@@ -21,6 +24,10 @@ type project struct {
 		OriginRemotes []string
 		InMainBranch  bool
 		IsDirty       bool
+		CloneURL      string
+		HTMLURL       string
+		RepoName      string
+		RepoOwner     string
 
 		head     *plumbing.Reference
 		repo     *git.Repository
@@ -30,7 +37,7 @@ type project struct {
 	}
 }
 
-// nolint:nestif
+// nolint:nestif,gocognit
 func projectFromPath(path string) (*project, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
@@ -72,6 +79,21 @@ func projectFromPath(path string) (*project, error) {
 			}
 			project.Git.origin = origin
 			project.Git.OriginRemotes = origin.Config().URLs
+			project.Git.CloneURL = origin.Config().URLs[0]
+			ret, err := multipmuri.DecodeString(project.Git.CloneURL)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse the clone URL: %w", err)
+			}
+			repo := multipmuri.RepoEntity(ret)
+			if typed, ok := repo.(*multipmuri.GitHubRepo); ok {
+				project.Git.RepoName = typed.RepoID()
+				project.Git.RepoOwner = typed.OwnerID()
+				project.Git.HTMLURL = typed.String()
+			} else {
+				// FIXME: guess name
+				// FIXME: guess owner
+				panic("not implemented")
+			}
 		}
 
 		// main branch
@@ -133,4 +155,140 @@ func gitFindRootDir(path string) string {
 		path = parent
 	}
 	return ""
+}
+
+func (p *project) prepareWorkspace(opts projectOpts) error {
+	if p.Git.Root == "" {
+		return fmt.Errorf("not implemented: non-git projects")
+	}
+
+	if p.Git.IsDirty {
+		return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+	}
+
+	if opts.Fetch {
+		logger.Debug("fetch origin", zap.String("project", p.Path))
+		err := p.Git.origin.Fetch(&git.FetchOptions{
+			Progress: os.Stderr,
+		})
+		switch err {
+		case git.NoErrAlreadyUpToDate:
+			// skip
+		case nil:
+			// skip
+		default:
+			return fmt.Errorf("failed to fetch origin: %w", err)
+		}
+	}
+
+	if opts.CheckoutMainBranch && !p.Git.InMainBranch {
+		logger.Debug("project is not using the main branch",
+			zap.String("current", p.Git.CurrentBranch),
+			zap.String("main", p.Git.MainBranch),
+		)
+		mainBranch, err := p.Git.repo.Branch(p.Git.MainBranch)
+		if err != nil {
+			return fmt.Errorf("failed to get ref for main branch: %q: %w", p.Git.MainBranch, err)
+		}
+
+		err = p.Git.workTree.Checkout(&git.CheckoutOptions{
+			Branch: mainBranch.Merge,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to checkout main branch: %q: %w", p.Git.MainBranch, err)
+		}
+
+		err = p.Git.workTree.Pull(&git.PullOptions{})
+		switch err {
+		case git.NoErrAlreadyUpToDate: // skip
+		case nil: // skip
+		default:
+			return fmt.Errorf("failed to pull main branch: %q: %w", p.Git.MainBranch, err)
+		}
+	}
+
+	// check if the project looks like a one that can be maintained by repoman
+	{
+		var errs error
+		for _, expected := range []string{"Makefile", "rules.mk"} {
+			if !u.FileExists(filepath.Join(p.Path, expected)) {
+				errs = multierr.Append(errs, fmt.Errorf("missing file: %q", expected))
+			}
+		}
+		if errs != nil {
+			return fmt.Errorf("project is not compatible with repoman: %w", errs)
+		}
+	}
+
+	return nil
+}
+
+func (p *project) showDiff() error {
+	script := `
+		main() {
+			# apply changes
+			git diff
+			git diff --cached
+			git status
+		}
+		main
+	`
+	cmd := exec.Command("/bin/sh", "-xec", script)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	cmd.Dir = p.Path
+	cmd.Env = os.Environ()
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("publish script execution failed: %w", err)
+	}
+	return nil
+}
+
+func (p *project) openPR(branchName string, title string) error {
+	initMoulBotEnv()
+	script := `
+		main() {
+			# apply changes
+			git branch -D {{.branchName}} || true
+			git checkout -b {{.branchName}}
+			git commit -s -a -m {{.title}} -m {{.body}}
+			git push -u origin {{.branchName}} -f
+			hub pull-request -m {{.title}} -m {{.body}} || hub pr list -f "- %pC%>(8)%i%Creset %U - %t% l%n"
+		}
+		main
+	`
+	body := "more details: https://github.com/moul/repoman"
+	script = strings.ReplaceAll(script, "{{.branchName}}", fmt.Sprintf("%q", branchName))
+	script = strings.ReplaceAll(script, "{{.title}}", fmt.Sprintf("%q", title))
+	script = strings.ReplaceAll(script, "{{.body}}", fmt.Sprintf("%q", body))
+	cmd := exec.Command("/bin/sh", "-xec", script)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	cmd.Dir = p.Path
+	cmd.Env = os.Environ()
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("publish script execution failed: %w", err)
+	}
+	return nil
+}
+
+func (p *project) pushChanges(opts projectOpts, branchName string, prTitle string) error {
+	if opts.ShowDiff {
+		err := p.showDiff()
+		if err != nil {
+			return fmt.Errorf("show diff: %w", err)
+		}
+	}
+
+	if opts.OpenPR {
+		err := p.openPR(branchName, prTitle)
+		if err != nil {
+			return fmt.Errorf("open PR: %w", err)
+		}
+	}
+	return nil
 }

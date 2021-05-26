@@ -20,47 +20,76 @@ func main() {
 	}
 }
 
+type projectOpts struct {
+	CheckoutMainBranch bool
+	Fetch              bool
+	ShowDiff           bool
+	OpenPR             bool
+}
+
 type Opts struct {
 	Path        string
 	Maintenance struct {
-		CheckoutMainBranch bool
-		NoFetch            bool
-		BumpDeps           bool
-		Standard           bool
-		ShowDiff           bool
+		Project  projectOpts
+		BumpDeps bool
+		Standard bool
+	}
+	TemplatePostClone struct {
+		Project       projectOpts
+		TemplateName  string
+		TemplateOwner string
 	}
 	Doctor  struct{}
 	Version struct{}
 }
 
 var (
-	rootFs        = flag.NewFlagSet("<root>", flag.ExitOnError)
-	doctorFs      = flag.NewFlagSet("doctor", flag.ExitOnError)
-	maintenanceFs = flag.NewFlagSet("maintenance", flag.ExitOnError)
-	versionFs     = flag.NewFlagSet("version", flag.ExitOnError)
-	bumpDepsFs    = flag.NewFlagSet("bump-deps", flag.ExitOnError)
-	opts          Opts
+	rootFs              = flag.NewFlagSet("<root>", flag.ExitOnError)
+	doctorFs            = flag.NewFlagSet("doctor", flag.ExitOnError)
+	maintenanceFs       = flag.NewFlagSet("maintenance", flag.ExitOnError)
+	versionFs           = flag.NewFlagSet("version", flag.ExitOnError)
+	templatePostCloneFs = flag.NewFlagSet("tmeplate-post-clone", flag.ExitOnError)
+	opts                Opts
 
 	logger *zap.Logger
 )
-
-func setupRootFlags(fs *flag.FlagSet) {
-	// fs.StringVar(&opts.Path, "p", ".", "project's path")
-}
 
 func run(args []string) error {
 	rand.Seed(srand.Fast())
 
 	// setup flags
-	setupRootFlags(rootFs)
-	setupRootFlags(doctorFs)
-	setupRootFlags(maintenanceFs)
-	setupRootFlags(bumpDepsFs)
-	maintenanceFs.BoolVar(&opts.Maintenance.CheckoutMainBranch, "checkout-main-branch", true, "switch to the main branch before applying the maintenance")
-	maintenanceFs.BoolVar(&opts.Maintenance.NoFetch, "no-fetch", false, "do not fetch origin")
-	maintenanceFs.BoolVar(&opts.Maintenance.BumpDeps, "bump-deps", false, "bump dependencies")
-	maintenanceFs.BoolVar(&opts.Maintenance.Standard, "std", true, "standard maintenance tasks")
-	maintenanceFs.BoolVar(&opts.Maintenance.ShowDiff, "show-diff", true, "display git diff of the changes")
+	{
+		setupRootFlags := func(fs *flag.FlagSet) {
+			// fs.StringVar(&opts.Path, "p", ".", "project's path")
+		}
+		setupProjectFlags := func(fs *flag.FlagSet, opts *projectOpts) {
+			fs.BoolVar(&opts.CheckoutMainBranch, "checkout-main-branch", true, "switch to the main branch before applying the changes")
+			fs.BoolVar(&opts.Fetch, "fetch", true, "fetch origin before applying the changes")
+			fs.BoolVar(&opts.ShowDiff, "show-diff", true, "display git diff of the changes")
+			fs.BoolVar(&opts.OpenPR, "open-pr", true, "open a new pull-request with the changes")
+		}
+		// root
+		setupRootFlags(rootFs)
+
+		// doctor
+		setupRootFlags(doctorFs)
+
+		// template-post-clone
+		setupRootFlags(templatePostCloneFs)
+		setupProjectFlags(templatePostCloneFs, &opts.TemplatePostClone.Project)
+		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateName, "template-name", "golang-repo-template", "template's name (to change with the new project's name)")
+		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateOwner, "template-owner", "moul", "template owner's name (to change with the new owner)")
+		// moul.io/<name> -> github.com/something/<name>
+
+		// version
+		// n/a
+
+		// maintenance
+		setupRootFlags(maintenanceFs)
+		setupProjectFlags(maintenanceFs, &opts.Maintenance.Project)
+		maintenanceFs.BoolVar(&opts.Maintenance.BumpDeps, "bump-deps", false, "bump dependencies")
+		maintenanceFs.BoolVar(&opts.Maintenance.Standard, "std", true, "standard maintenance tasks")
+	}
 
 	// init logger
 	{
@@ -78,8 +107,7 @@ func run(args []string) error {
 			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs, ShortHelp: "perform various checks (read-only)"},
 			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)"},
 			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info"},
-			// copyTemplate
-			// postTemplateClone
+			{Name: "template-post-clone", Exec: doTemplatePostClone, FlagSet: templatePostCloneFs, ShortHelp: "replace template"},
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp

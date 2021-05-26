@@ -27,9 +27,10 @@ USAGE
   repoman
 
 SUBCOMMANDS
-  doctor       perform various checks (read-only)
-  maintenance  perform various maintenance tasks (write)
-  version      show version and build info
+  doctor               perform various checks (read-only)
+  maintenance          perform various maintenance tasks (write)
+  version              show version and build info
+  template-post-clone  replace template
 ```
 
 [embedmd]:# (.tmp/usage-maintenance.txt console)
@@ -44,6 +45,18 @@ FLAGS
   -no-fetch false             do not fetch origin
   -show-diff true             display git diff of the changes
   -std true                   standard maintenance tasks
+```
+
+[embedmd]:# (.tmp/usage-template-post-clone.txt console)
+```console
+foo@bar:~$ repoman template-post-clone -h
+USAGE
+  template-post-clone
+
+FLAGS
+  -checkout-main-branch true  switch to the main branch before applying the templatePostClone script
+  -no-fetch false             do not fetch origin
+  -show-diff true             display git diff of the changes
 ```
 
 ## Install

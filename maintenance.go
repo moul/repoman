@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 
-	hub "github.com/github/hub/v2/github"
-	"github.com/go-git/go-git/v5"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
@@ -42,69 +39,13 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		return fmt.Errorf("invalid project: %w", err)
 	}
 
-	if project.Git.Root == "" {
-		return fmt.Errorf("not implemented: maintenance over non-git projects")
-	}
-
-	if project.Git.IsDirty {
-		return fmt.Errorf("worktree is dirty, please commit or discard changes before running a maintenance") // nolint:goerr113
-	}
-
-	if !opts.Maintenance.NoFetch {
-		logger.Debug("fetch origin", zap.String("project", project.Path))
-		err := project.Git.origin.Fetch(&git.FetchOptions{
-			Progress: os.Stderr,
-		})
-		switch err {
-		case git.NoErrAlreadyUpToDate:
-			// skip
-		case nil:
-			// skip
-		default:
-			return fmt.Errorf("failed to fetch origin: %w", err)
-		}
-	}
-
-	if opts.Maintenance.CheckoutMainBranch && !project.Git.InMainBranch {
-		logger.Debug("project is not using the main branch",
-			zap.String("current", project.Git.CurrentBranch),
-			zap.String("main", project.Git.MainBranch),
-		)
-		mainBranch, err := project.Git.repo.Branch(project.Git.MainBranch)
-		if err != nil {
-			return fmt.Errorf("failed to get ref for main branch: %q: %w", project.Git.MainBranch, err)
-		}
-
-		err = project.Git.workTree.Checkout(&git.CheckoutOptions{
-			Branch: mainBranch.Merge,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to checkout main branch: %q: %w", project.Git.MainBranch, err)
-		}
-
-		err = project.Git.workTree.Pull(&git.PullOptions{})
-		switch err {
-		case git.NoErrAlreadyUpToDate: // skip
-		case nil: // skip
-		default:
-			return fmt.Errorf("failed to pull main branch: %q: %w", project.Git.MainBranch, err)
-		}
-	}
-
-	// check if the project looks like a one that can be maintained by repoman
+	// prepare workspace
 	{
-		var errs error
-		for _, expected := range []string{"Makefile", "rules.mk"} {
-			if !u.FileExists(filepath.Join(project.Path, expected)) {
-				errs = multierr.Append(errs, fmt.Errorf("missing file: %q", expected))
-			}
-		}
-		if errs != nil {
-			return fmt.Errorf("project is not compatible with repoman: %w", errs)
+		err := project.prepareWorkspace(opts.Maintenance.Project)
+		if err != nil {
+			return fmt.Errorf("prepare workspace: %w", err)
 		}
 	}
-
-	initMoulBotEnv()
 
 	// TODO
 	// - repoman.yml ->
@@ -187,66 +128,13 @@ func doMaintenanceOnce(_ context.Context, path string) error {
 		}
 	}
 
-	if opts.Maintenance.ShowDiff {
-		script := `
-		main() {
-			# apply changes
-			git diff
-			git diff --cached
-			git status
-		}
-		main
-	`
-		cmd := exec.Command("/bin/sh", "-xec", script)
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		cmd.Dir = project.Path
-		cmd.Env = os.Environ()
-
-		err := cmd.Run()
-		if err != nil {
-			return fmt.Errorf("publish script execution failed: %w", err)
-		}
-	}
-
-	// open a PR for the changes
+	// push changes
 	{
-		script := `
-		main() {
-			# apply changes
-			git branch -D dev/moul/maintenance || true
-			git checkout -b dev/moul/maintenance
-			git commit -s -a -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman"
-			git push -u origin dev/moul/maintenance -f
-			hub pull-request -m "chore: repo maintenance 🤖" -m "more details: https://github.com/moul/repoman" || hub pr list -f "- %pC%>(8)%i%Creset %U - %t% l%n"
-		}
-		main
-	`
-		cmd := exec.Command("/bin/sh", "-xec", script)
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		cmd.Dir = project.Path
-		cmd.Env = os.Environ()
-
-		err := cmd.Run()
+		err := project.pushChanges(opts.TemplatePostClone.Project, "dev/moul/maintenance", "chore: repo maintenance 🤖")
 		if err != nil {
-			return fmt.Errorf("publish script execution failed: %w", err)
+			return fmt.Errorf("push changes: %w", err)
 		}
 	}
 
 	return nil
-}
-
-func initMoulBotEnv() {
-	if os.Getenv("REPOMAN_INITED") == "true" {
-		return
-	}
-	os.Setenv("REPOMAN_INITED", "true")
-	os.Setenv("GIT_AUTHOR_NAME", "moul-bot")
-	os.Setenv("GIT_COMMITTER_NAME", "moul-bot")
-	os.Setenv("GIT_AUTHOR_EMAIL", "bot@moul.io")
-	os.Setenv("GIT_COMMITTER_EMAIL", "bot@moul.io")
-	os.Setenv("HUB_CONFIG", filepath.Join(os.Getenv("HOME"), ".config", "hub-moul-bot"))
-	config := hub.CurrentConfig()
-	os.Setenv("GITHUB_TOKEN", config.Hosts[0].AccessToken)
 }
