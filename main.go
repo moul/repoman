@@ -72,13 +72,17 @@ func run(args []string) error {
 	}
 
 	root := &ffcli.Command{
+		Name:    "repoman",
 		FlagSet: rootFs,
 		Subcommands: []*ffcli.Command{
-			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs},
-			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs},
-			{Name: "version", Exec: doVersion, FlagSet: versionFs},
+			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs, ShortHelp: "perform various checks (read-only)"},
+			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)"},
+			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info"},
 			// copyTemplate
 			// postTemplateClone
+		},
+		Exec: func(ctx context.Context, args []string) error {
+			return flag.ErrHelp
 		},
 	}
 
