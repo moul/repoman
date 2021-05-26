@@ -15,7 +15,7 @@ require (
 	github.com/tailscale/depaware v0.0.0-20201214215404-77d1e9757027
 	go.uber.org/goleak v1.1.10
 	go.uber.org/multierr v1.7.0
-	go.uber.org/zap v1.16.0
+	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
