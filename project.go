@@ -269,6 +269,7 @@ func (p *project) showDiff() error {
 }
 
 func (p *project) openPR(branchName string, title string) error {
+	logger.Debug("opening a PR", zap.String("branch", branchName), zap.String("title", title))
 	initMoulBotEnv()
 	script := `
 		main() {
