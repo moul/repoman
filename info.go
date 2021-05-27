@@ -7,6 +7,7 @@ import (
 
 	"github.com/hokaccha/go-prettyjson"
 	"go.uber.org/multierr"
+	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"moul.io/u"
 )
@@ -16,7 +17,7 @@ func doInfo(ctx context.Context, args []string) error {
 		return flag.ErrHelp
 	}
 	paths := u.UniqueStrings(args)
-	// logger.Debug("doInfo", zap.Any("opts", opts), zap.Strings("project", paths))
+	logger.Debug("doInfo", zap.Any("opts", opts), zap.Strings("project", paths))
 
 	var errs error
 	g, ctx := errgroup.WithContext(ctx)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/peterbourgon/ff/v3/ffcli"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"moul.io/srand"
 	"moul.io/zapconfig"
 )
@@ -31,6 +32,7 @@ type projectOpts struct {
 }
 
 type Opts struct {
+	Verbose     bool
 	Path        string
 	Maintenance struct {
 		Project  projectOpts
@@ -65,9 +67,6 @@ func run(args []string) error {
 
 	// setup flags
 	{
-		setupRootFlags := func(fs *flag.FlagSet) {
-			// fs.StringVar(&opts.Path, "p", ".", "project's path")
-		}
 		setupProjectFlags := func(fs *flag.FlagSet, opts *projectOpts) {
 			fs.BoolVar(&opts.CheckoutMainBranch, "checkout-main-branch", true, "switch to the main branch before applying the changes")
 			fs.BoolVar(&opts.Fetch, "fetch", true, "fetch origin before applying the changes")
@@ -75,40 +74,14 @@ func run(args []string) error {
 			fs.BoolVar(&opts.OpenPR, "open-pr", true, "open a new pull-request with the changes")
 			fs.BoolVar(&opts.Reset, "reset", false, "reset dirty worktree before applying the changes")
 		}
-		// root
-		setupRootFlags(rootFs)
-
-		// doctor
-		setupRootFlags(doctorFs)
-
-		// info
-		setupRootFlags(infoFs)
-
-		// template-post-clone
-		setupRootFlags(templatePostCloneFs)
+		rootFs.BoolVar(&opts.Verbose, "v", false, "verbose mode")
 		setupProjectFlags(templatePostCloneFs, &opts.TemplatePostClone.Project)
 		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateName, "template-name", "golang-repo-template", "template's name (to change with the new project's name)")
 		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateOwner, "template-owner", "moul", "template owner's name (to change with the new owner)")
 		templatePostCloneFs.BoolVar(&opts.TemplatePostClone.RemoveGoBinary, "rm-go-binary", false, "whether to delete everything related to go binary and only keep a library")
-		// moul.io/<name> -> github.com/something/<name>
-
-		// version
-		// n/a
-
-		// maintenance
-		setupRootFlags(maintenanceFs)
 		setupProjectFlags(maintenanceFs, &opts.Maintenance.Project)
 		maintenanceFs.BoolVar(&opts.Maintenance.BumpDeps, "bump-deps", false, "bump dependencies")
 		maintenanceFs.BoolVar(&opts.Maintenance.Standard, "std", true, "standard maintenance tasks")
-	}
-
-	// init logger
-	{
-		var err error
-		logger, err = (&zapconfig.Configurator{}).SetPreset("light-console").Build()
-		if err != nil {
-			return err
-		}
 	}
 
 	root := &ffcli.Command{
@@ -127,9 +100,28 @@ func run(args []string) error {
 		},
 	}
 
-	if err := root.ParseAndRun(context.Background(), args); err != nil {
-		return err
+	if err := root.Parse(args); err != nil {
+		return fmt.Errorf("parse error: %w", err)
 	}
 
+	// init logger
+	{
+		var err error
+		config := zapconfig.New().
+			SetPreset("light-console")
+		if opts.Verbose {
+			config = config.SetLevel(zapcore.DebugLevel)
+		} else {
+			config = config.SetLevel(zapcore.InfoLevel)
+		}
+		logger, err = config.Build()
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := root.Run(context.Background()); err != nil {
+		return fmt.Errorf("run error: %w", err)
+	}
 	return nil
 }
