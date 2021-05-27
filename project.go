@@ -163,7 +163,29 @@ func (p *project) prepareWorkspace(opts projectOpts) error {
 	}
 
 	if p.Git.IsDirty {
-		return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+		if opts.Reset {
+			// reset
+			{
+				err := p.Git.workTree.Reset(&git.ResetOptions{
+					Mode: git.HardReset,
+				})
+				if err != nil {
+					return fmt.Errorf("reset worktree: %w", err)
+				}
+			}
+			// update status
+			{
+				status, err := p.Git.workTree.Status()
+				if err != nil {
+					return fmt.Errorf("failed to get status: %w", err)
+				}
+				p.Git.status = status
+				p.Git.IsDirty = !status.IsClean()
+			}
+		}
+		if p.Git.IsDirty {
+			return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+		}
 	}
 
 	if opts.Fetch {
