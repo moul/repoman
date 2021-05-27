@@ -44,12 +44,14 @@ type Opts struct {
 		TemplateOwner  string
 	}
 	Doctor  struct{}
+	Info    struct{}
 	Version struct{}
 }
 
 var (
 	rootFs              = flag.NewFlagSet("<root>", flag.ExitOnError)
 	doctorFs            = flag.NewFlagSet("doctor", flag.ExitOnError)
+	infoFs              = flag.NewFlagSet("doctor", flag.ExitOnError)
 	maintenanceFs       = flag.NewFlagSet("maintenance", flag.ExitOnError)
 	versionFs           = flag.NewFlagSet("version", flag.ExitOnError)
 	templatePostCloneFs = flag.NewFlagSet("tmeplate-post-clone", flag.ExitOnError)
@@ -78,6 +80,9 @@ func run(args []string) error {
 
 		// doctor
 		setupRootFlags(doctorFs)
+
+		// info
+		setupRootFlags(infoFs)
 
 		// template-post-clone
 		setupRootFlags(templatePostCloneFs)
@@ -111,6 +116,7 @@ func run(args []string) error {
 		FlagSet:    rootFs,
 		ShortUsage: "repoman <subcommand>",
 		Subcommands: []*ffcli.Command{
+			{Name: "info", Exec: doInfo, FlagSet: infoFs, ShortHelp: "get project info", ShortUsage: "info [opts] <path...>"},
 			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs, ShortHelp: "perform various checks (read-only)", ShortUsage: "doctor [opts] <path...>"},
 			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)", ShortUsage: "maintenance [opts] <path...>"},
 			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info", ShortUsage: "version"},
