@@ -15,7 +15,9 @@ import (
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %+v\n", err)
+		if err != flag.ErrHelp {
+			fmt.Fprintf(os.Stderr, "error: %+v\n", err)
+		}
 		os.Exit(1)
 	}
 }
@@ -105,13 +107,14 @@ func run(args []string) error {
 	}
 
 	root := &ffcli.Command{
-		Name:    "repoman",
-		FlagSet: rootFs,
+		Name:       "repoman",
+		FlagSet:    rootFs,
+		ShortUsage: "repoman <subcommand>",
 		Subcommands: []*ffcli.Command{
-			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs, ShortHelp: "perform various checks (read-only)"},
-			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)"},
-			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info"},
-			{Name: "template-post-clone", Exec: doTemplatePostClone, FlagSet: templatePostCloneFs, ShortHelp: "replace template"},
+			{Name: "doctor", Exec: doDoctor, FlagSet: doctorFs, ShortHelp: "perform various checks (read-only)", ShortUsage: "doctor [opts] <path...>"},
+			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)", ShortUsage: "maintenance [opts] <path...>"},
+			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info", ShortUsage: "version"},
+			{Name: "template-post-clone", Exec: doTemplatePostClone, FlagSet: templatePostCloneFs, ShortHelp: "replace template", ShortUsage: "template-post-clone [opts] <path...>"},
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp

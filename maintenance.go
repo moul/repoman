@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,6 +14,9 @@ import (
 )
 
 func doMaintenance(ctx context.Context, args []string) error {
+	if len(args) < 1 {
+		return flag.ErrHelp
+	}
 	paths := u.UniqueStrings(args)
 	g, ctx := errgroup.WithContext(ctx)
 	logger.Debug("doMaintenance", zap.Any("opts", opts), zap.Strings("projects", paths))

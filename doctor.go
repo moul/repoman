@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 
 	"github.com/hokaccha/go-prettyjson"
@@ -12,6 +13,9 @@ import (
 )
 
 func doDoctor(ctx context.Context, args []string) error {
+	if len(args) < 1 {
+		return flag.ErrHelp
+	}
 	paths := u.UniqueStrings(args)
 	logger.Debug("doDoctor", zap.Any("opts", opts), zap.Strings("project", paths))
 
