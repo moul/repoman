@@ -25,6 +25,7 @@ type projectOpts struct {
 	Fetch              bool
 	ShowDiff           bool
 	OpenPR             bool
+	Reset              bool
 }
 
 type Opts struct {
@@ -35,9 +36,10 @@ type Opts struct {
 		Standard bool
 	}
 	TemplatePostClone struct {
-		Project       projectOpts
-		TemplateName  string
-		TemplateOwner string
+		Project        projectOpts
+		RemoveGoBinary bool
+		TemplateName   string
+		TemplateOwner  string
 	}
 	Doctor  struct{}
 	Version struct{}
@@ -67,6 +69,7 @@ func run(args []string) error {
 			fs.BoolVar(&opts.Fetch, "fetch", true, "fetch origin before applying the changes")
 			fs.BoolVar(&opts.ShowDiff, "show-diff", true, "display git diff of the changes")
 			fs.BoolVar(&opts.OpenPR, "open-pr", true, "open a new pull-request with the changes")
+			fs.BoolVar(&opts.Reset, "reset", false, "reset dirty worktree before applying the changes")
 		}
 		// root
 		setupRootFlags(rootFs)
@@ -79,6 +82,7 @@ func run(args []string) error {
 		setupProjectFlags(templatePostCloneFs, &opts.TemplatePostClone.Project)
 		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateName, "template-name", "golang-repo-template", "template's name (to change with the new project's name)")
 		templatePostCloneFs.StringVar(&opts.TemplatePostClone.TemplateOwner, "template-owner", "moul", "template owner's name (to change with the new owner)")
+		templatePostCloneFs.BoolVar(&opts.TemplatePostClone.RemoveGoBinary, "rm-go-binary", false, "whether to delete everything related to go binary and only keep a library")
 		// moul.io/<name> -> github.com/something/<name>
 
 		// version

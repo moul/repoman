@@ -41,8 +41,10 @@ USAGE
 
 FLAGS
   -bump-deps false            bump dependencies
-  -checkout-main-branch true  switch to the main branch before applying the maintenance
-  -no-fetch false             do not fetch origin
+  -checkout-main-branch true  switch to the main branch before applying the changes
+  -fetch true                 fetch origin before applying the changes
+  -open-pr true               open a new pull-request with the changes
+  -reset false                reset dirty worktree before applying the changes
   -show-diff true             display git diff of the changes
   -std true                   standard maintenance tasks
 ```
@@ -54,9 +56,14 @@ USAGE
   template-post-clone
 
 FLAGS
-  -checkout-main-branch true  switch to the main branch before applying the templatePostClone script
-  -no-fetch false             do not fetch origin
-  -show-diff true             display git diff of the changes
+  -checkout-main-branch true           switch to the main branch before applying the changes
+  -fetch true                          fetch origin before applying the changes
+  -open-pr true                        open a new pull-request with the changes
+  -reset false                         reset dirty worktree before applying the changes
+  -rm-go-binary false                  whether to delete everything related to go binary and only keep a library
+  -show-diff true                      display git diff of the changes
+  -template-name golang-repo-template  template's name (to change with the new project's name)
+  -template-owner moul                 template owner's name (to change with the new owner)
 ```
 
 ## Install

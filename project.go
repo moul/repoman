@@ -128,13 +128,8 @@ func projectFromPath(path string) (*project, error) {
 		}
 
 		// status
-		{
-			status, err := project.Git.workTree.Status()
-			if err != nil {
-				return nil, fmt.Errorf("failed to get status: %w", err)
-			}
-			project.Git.status = status
-			project.Git.IsDirty = !status.IsClean()
+		if err := project.updateStatus(); err != nil {
+			return nil, fmt.Errorf("update status: %w", err)
 		}
 	} else {
 		logger.Warn("project not within a git directory", zap.String("path", path))
@@ -157,11 +152,35 @@ func gitFindRootDir(path string) string {
 	return ""
 }
 
+func (p *project) updateStatus() error {
+	status, err := p.Git.workTree.Status()
+	if err != nil {
+		return fmt.Errorf("failed to get status: %w", err)
+	}
+	p.Git.status = status
+	p.Git.IsDirty = !status.IsClean()
+	return nil
+}
+
 func (p *project) prepareWorkspace(opts projectOpts) error {
 	if p.Git.Root == "" {
 		return fmt.Errorf("not implemented: non-git projects")
 	}
 
+	if p.Git.IsDirty && opts.Reset {
+		// reset
+		{
+			err := p.Git.workTree.Reset(&git.ResetOptions{
+				Mode: git.HardReset,
+			})
+			if err != nil {
+				return fmt.Errorf("reset worktree: %w", err)
+			}
+		}
+		if err := p.updateStatus(); err != nil {
+			return fmt.Errorf("update status: %w", err)
+		}
+	}
 	if p.Git.IsDirty {
 		return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
 	}
@@ -247,6 +266,7 @@ func (p *project) showDiff() error {
 }
 
 func (p *project) openPR(branchName string, title string) error {
+	logger.Debug("opening a PR", zap.String("branch", branchName), zap.String("title", title))
 	initMoulBotEnv()
 	script := `
 		main() {
