@@ -38,6 +38,7 @@ func doTemplatePostClone(ctx context.Context, args []string) error {
 	return errs
 }
 
+// nolint:gocognit,nestif
 func doTemplatePostCloneOnce(_ context.Context, path string) error {
 	project, err := projectFromPath(path)
 	if err != nil {
@@ -80,12 +81,10 @@ func doTemplatePostCloneOnce(_ context.Context, path string) error {
 		}
 
 		// remove files
-		{
-			for _, filename := range []string{"Dockerfile", ".goreleaser.yml", ".github/workflows/docker.yml"} {
-				_, err := project.Git.workTree.Remove(filename)
-				if err != nil {
-					return fmt.Errorf("git rm %q: %w", filename, err)
-				}
+		for _, filename := range []string{"Dockerfile", ".goreleaser.yml", ".github/workflows/docker.yml"} {
+			_, err := project.Git.workTree.Remove(filename)
+			if err != nil {
+				return fmt.Errorf("git rm %q: %w", filename, err)
 			}
 		}
 
