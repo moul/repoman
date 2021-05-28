@@ -111,7 +111,12 @@ func projectFromPath(path string) (*project, error) {
 					Depth:    1,
 					Progress: os.Stdout,
 				})
-				if err != nil {
+				switch err {
+				case git.NoErrAlreadyUpToDate:
+				// noop
+				case nil:
+				// noop
+				default:
 					return nil, fmt.Errorf("failed to fetch origin: %w", err)
 				}
 				ref, err = project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
