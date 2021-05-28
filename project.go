@@ -28,6 +28,13 @@ type project struct {
 		HTMLURL       string
 		RepoName      string
 		RepoOwner     string
+		Metadata      struct {
+			HasGo      *bool `json:"HasGo,omitempty"`
+			HasDocker  *bool `json:"HasDocker,omitempty"`
+			HasLibrary *bool `json:"HasLibrary,omitempty"`
+			HasBinary  *bool `json:"HasBinary,omitempty"`
+			// GoImport   string `json:"GoImport,omitempty"` // moul.io/xxx
+		} `json:"Metadata,omitempty"`
 
 		head     *plumbing.Reference
 		repo     *git.Repository
@@ -130,6 +137,24 @@ func projectFromPath(path string) (*project, error) {
 		// status
 		if err := project.updateStatus(); err != nil {
 			return nil, fmt.Errorf("update status: %w", err)
+		}
+
+		// metadata
+		{
+			// guess it
+			if u.FileExists(filepath.Join(project.Git.Root, "Dockerfile")) {
+				project.Git.Metadata.HasDocker = u.BoolPtr(true)
+				project.Git.Metadata.HasBinary = u.BoolPtr(true)
+			}
+			goFiles, err := filepath.Glob(filepath.Join(project.Git.Root, "*.go"))
+			if err != nil {
+				return nil, fmt.Errorf("glob: %w", err)
+			}
+			project.Git.Metadata.HasGo = u.BoolPtr(len(goFiles) > 0)
+			project.Git.Metadata.HasLibrary = u.BoolPtr(*project.Git.Metadata.HasGo && !*project.Git.Metadata.HasBinary)
+
+			// override it from metadata file
+			// FIXME: TODO
 		}
 	} else {
 		logger.Warn("project not within a git directory", zap.String("path", path))
