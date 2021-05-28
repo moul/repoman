@@ -121,19 +121,22 @@ func projectFromPath(path string) (*project, error) {
 				}
 				ref, err = project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
 				if err != nil {
+					logger.Warn("failed to get main branch", zap.Error(err))
 					refs, _ := project.Git.repo.References()
 					_ = refs.ForEach(func(ref *plumbing.Reference) error {
 						if ref.Type() == plumbing.HashReference {
-							fmt.Println(ref)
+							logger.Debug("ref", zap.Stringer("ref", ref))
 						}
 						return nil
 					})
-					return nil, fmt.Errorf("failed to get main branch: %w", err)
+					project.Git.MainBranch = "n/a"
 				}
 			}
-			project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
+			if project.Git.MainBranch != "n/a" {
+				project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
+			}
 		}
-		if project.Git.MainBranch != "" && project.Git.CurrentBranch != "" {
+		if project.Git.MainBranch != "n/a" && project.Git.MainBranch != "" && project.Git.CurrentBranch != "" {
 			project.Git.InMainBranch = project.Git.MainBranch == project.Git.CurrentBranch
 		}
 
