@@ -121,6 +121,13 @@ func projectFromPath(path string) (*project, error) {
 				}
 				ref, err = project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
 				if err != nil {
+					refs, _ := project.Git.repo.References()
+					refs.ForEach(func(ref *plumbing.Reference) error {
+						if ref.Type() == plumbing.HashReference {
+							fmt.Println(ref)
+						}
+						return nil
+					})
 					return nil, fmt.Errorf("failed to get main branch: %w", err)
 				}
 			}
