@@ -24,20 +24,24 @@
 ```console
 foo@bar:~$ repoman -h
 USAGE
-  repoman
+  repoman <subcommand>
 
 SUBCOMMANDS
+  info                 get project info
   doctor               perform various checks (read-only)
   maintenance          perform various maintenance tasks (write)
   version              show version and build info
   template-post-clone  replace template
+
+FLAGS
+  -v false  verbose mode
 ```
 
 [embedmd]:# (.tmp/usage-maintenance.txt console)
 ```console
 foo@bar:~$ repoman maintenance -h
 USAGE
-  maintenance
+  maintenance [opts] <path...>
 
 FLAGS
   -bump-deps false            bump dependencies
@@ -53,7 +57,7 @@ FLAGS
 ```console
 foo@bar:~$ repoman template-post-clone -h
 USAGE
-  template-post-clone
+  template-post-clone [opts] <path...>
 
 FLAGS
   -checkout-main-branch true           switch to the main branch before applying the changes

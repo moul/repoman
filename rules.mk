@@ -215,6 +215,17 @@ FMT_STEPS += go.fmt
 endif
 
 ##
+## Tool
+##
+
+ifneq ($(wildcard ./tool/lint/Makefile),)
+.PHONY: tool.lint
+tool.lint:
+	cd tool/lint; make
+LINT_STEPS += tool.lint
+endif
+
+##
 ## Gitattributes
 ##
 
