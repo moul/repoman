@@ -144,11 +144,18 @@ func projectFromPath(path string) (*project, error) {
 		// metadata
 		{
 			// guess it
-			if u.FileExists(filepath.Join(project.Git.Root, "Dockerfile")) {
+			if u.FileExists(filepath.Join(project.Path, "Dockerfile")) { // FIXME: look for other dockerfiles
 				project.Git.Metadata.HasDocker = u.BoolPtr(true)
 				project.Git.Metadata.HasBinary = u.BoolPtr(true)
+			} else {
+				project.Git.Metadata.HasDocker = u.BoolPtr(false)
+				if u.FileExists(filepath.Join(project.Path, "main.go")) { // FIXME: improve check
+					project.Git.Metadata.HasBinary = u.BoolPtr(true)
+				} else {
+					project.Git.Metadata.HasBinary = u.BoolPtr(false)
+				}
 			}
-			goFiles, err := filepath.Glob(filepath.Join(project.Git.Root, "*.go"))
+			goFiles, err := filepath.Glob(filepath.Join(project.Path, "*.go")) // FIXME: recursive
 			if err != nil {
 				return nil, fmt.Errorf("glob: %w", err)
 			}
