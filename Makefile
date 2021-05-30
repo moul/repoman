@@ -20,6 +20,8 @@ generate: install
 	echo 'foo@bar:~$$ repoman info .' > .tmp/example-info.txt
 	repoman info . >> .tmp/example-info.txt
 
+	repoman assets-config . > .github/assets-config.json
+
 	embedmd -w README.md
 	rm -rf .tmp
 .PHONY: generate

@@ -26,9 +26,9 @@ foo@bar:~$ repoman info .
 {
   "Git": {
     "CloneURL": "git@github.com:moul/repoman",
-    "CurrentBranch": "master",
+    "CurrentBranch": "dev/moul/assets-config",
     "HTMLURL": "https://github.com/moul/repoman",
-    "InMainBranch": true,
+    "InMainBranch": false,
     "IsDirty": null,
     "MainBranch": "master",
     "Metadata": {
@@ -63,6 +63,7 @@ SUBCOMMANDS
   maintenance          perform various maintenance tasks (write)
   version              show version and build info
   template-post-clone  replace template
+  assets-config        generate a configuration for assets
 
 FLAGS
   -v false  verbose mode

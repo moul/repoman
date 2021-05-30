@@ -56,7 +56,8 @@ var (
 	infoFs              = flag.NewFlagSet("doctor", flag.ExitOnError)
 	maintenanceFs       = flag.NewFlagSet("maintenance", flag.ExitOnError)
 	versionFs           = flag.NewFlagSet("version", flag.ExitOnError)
-	templatePostCloneFs = flag.NewFlagSet("tmeplate-post-clone", flag.ExitOnError)
+	templatePostCloneFs = flag.NewFlagSet("template-post-clone", flag.ExitOnError)
+	assetsConfigFs      = flag.NewFlagSet("assets-config", flag.ExitOnError)
 	opts                Opts
 
 	logger *zap.Logger
@@ -94,6 +95,7 @@ func run(args []string) error {
 			{Name: "maintenance", Exec: doMaintenance, FlagSet: maintenanceFs, ShortHelp: "perform various maintenance tasks (write)", ShortUsage: "maintenance [opts] <path...>"},
 			{Name: "version", Exec: doVersion, FlagSet: versionFs, ShortHelp: "show version and build info", ShortUsage: "version"},
 			{Name: "template-post-clone", Exec: doTemplatePostClone, FlagSet: templatePostCloneFs, ShortHelp: "replace template", ShortUsage: "template-post-clone [opts] <path...>"},
+			{Name: "assets-config", Exec: doAssetsConfig, FlagSet: assetsConfigFs, ShortHelp: "generate a configuration for assets", ShortUsage: "assets-config [opts] <path...>"},
 		},
 		Exec: func(ctx context.Context, args []string) error {
 			return flag.ErrHelp
