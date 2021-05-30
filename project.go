@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
+	"golang.org/x/mod/modfile"
 	"moul.io/multipmuri"
 	"moul.io/u"
 )
@@ -29,11 +31,11 @@ type project struct {
 		RepoName      string
 		RepoOwner     string
 		Metadata      struct {
-			HasGo      *bool `json:"HasGo,omitempty"`
-			HasDocker  *bool `json:"HasDocker,omitempty"`
-			HasLibrary *bool `json:"HasLibrary,omitempty"`
-			HasBinary  *bool `json:"HasBinary,omitempty"`
-			// GoImport   string `json:"GoImport,omitempty"` // moul.io/xxx
+			HasGo      *bool  `json:"HasGo,omitempty"`
+			HasDocker  *bool  `json:"HasDocker,omitempty"`
+			HasLibrary *bool  `json:"HasLibrary,omitempty"`
+			HasBinary  *bool  `json:"HasBinary,omitempty"`
+			GoModPath  string `json:"GoModPath,omitempty"`
 		} `json:"Metadata,omitempty"`
 
 		head     *plumbing.Reference
@@ -137,12 +139,14 @@ func projectFromPath(path string) (*project, error) {
 		}
 
 		// status
+		logger.Debug("status")
 		if err := project.updateStatus(); err != nil {
 			return nil, fmt.Errorf("update status: %w", err)
 		}
 
 		// metadata
 		{
+			logger.Debug("guess metadata")
 			// guess it
 			if u.FileExists(filepath.Join(project.Path, "Dockerfile")) { // FIXME: look for other dockerfiles
 				project.Git.Metadata.HasDocker = u.BoolPtr(true)
@@ -155,11 +159,20 @@ func projectFromPath(path string) (*project, error) {
 					project.Git.Metadata.HasBinary = u.BoolPtr(false)
 				}
 			}
-			goFiles, err := filepath.Glob(filepath.Join(project.Path, "*.go")) // FIXME: recursive
-			if err != nil {
-				return nil, fmt.Errorf("glob: %w", err)
+			if u.FileExists(filepath.Join(project.Path, "go.mod")) {
+				project.Git.Metadata.HasGo = u.BoolPtr(true)
+				content, err := ioutil.ReadFile(filepath.Join(project.Path, "go.mod"))
+				if err != nil {
+					return nil, fmt.Errorf("read go.mod: %w", err)
+				}
+				project.Git.Metadata.GoModPath = modfile.ModulePath(content)
+			} else {
+				goFiles, err := filepath.Glob(filepath.Join(project.Path, "*.go")) // FIXME: recursive
+				if err != nil {
+					return nil, fmt.Errorf("glob: %w", err)
+				}
+				project.Git.Metadata.HasGo = u.BoolPtr(len(goFiles) > 0)
 			}
-			project.Git.Metadata.HasGo = u.BoolPtr(len(goFiles) > 0)
 			project.Git.Metadata.HasLibrary = u.BoolPtr(*project.Git.Metadata.HasGo && !*project.Git.Metadata.HasBinary)
 
 			// override it from metadata file
