@@ -105,35 +105,22 @@ func projectFromPath(path string) (*project, error) {
 
 		// main branch
 		{
+			logger.Debug("rep.Reference(refs/remotes/origin/HEAD)")
 			ref, err := project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
-			if err != nil { // if it fails, we try to fetch origin and then we retry
-				err = project.Git.origin.Fetch(&git.FetchOptions{
-					Depth:    1,
-					Progress: os.Stdout,
-				})
-				switch err {
-				case git.NoErrAlreadyUpToDate:
-				// noop
-				case nil:
-				// noop
-				default:
-					return nil, fmt.Errorf("failed to fetch origin: %w", err)
-				}
-				ref, err = project.Git.repo.Reference("refs/remotes/origin/HEAD", true)
+			if err == nil {
+				project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
+			} else { // if it fails, we try to fetch origin and then we retry
+				logger.Debug("origin.List()")
+				refs, err := project.Git.origin.List(&git.ListOptions{})
 				if err != nil {
-					logger.Warn("failed to get main branch", zap.Error(err))
-					refs, _ := project.Git.repo.References()
-					_ = refs.ForEach(func(ref *plumbing.Reference) error {
-						if ref.Type() == plumbing.HashReference {
-							logger.Debug("ref", zap.Stringer("ref", ref))
-						}
-						return nil
-					})
+					logger.Warn("failed to list origin refs", zap.Error(err))
 					project.Git.MainBranch = "n/a"
 				}
-			}
-			if project.Git.MainBranch != "n/a" {
-				project.Git.MainBranch = strings.TrimPrefix(ref.Name().Short(), "origin/")
+				for _, ref := range refs {
+					if ref.Name() == "HEAD" {
+						project.Git.MainBranch = ref.Target().Short()
+					}
+				}
 			}
 		}
 		if project.Git.MainBranch != "n/a" && project.Git.MainBranch != "" && project.Git.CurrentBranch != "" {
