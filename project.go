@@ -25,7 +25,7 @@ type project struct {
 		CurrentBranch string
 		OriginRemotes []string
 		InMainBranch  bool
-		IsDirty       bool
+		IsDirty       *bool
 		CloneURL      string
 		HTMLURL       string
 		RepoName      string
@@ -138,12 +138,6 @@ func projectFromPath(path string) (*project, error) {
 			project.Git.workTree = workTree
 		}
 
-		// status
-		logger.Debug("status")
-		if err := project.updateStatus(); err != nil {
-			return nil, fmt.Errorf("update status: %w", err)
-		}
-
 		// metadata
 		{
 			logger.Debug("guess metadata")
@@ -205,7 +199,7 @@ func (p *project) updateStatus() error {
 		return fmt.Errorf("failed to get status: %w", err)
 	}
 	p.Git.status = status
-	p.Git.IsDirty = !status.IsClean()
+	p.Git.IsDirty = u.BoolPtr(!status.IsClean())
 	return nil
 }
 
@@ -214,22 +208,30 @@ func (p *project) prepareWorkspace(opts projectOpts) error {
 		return fmt.Errorf("not implemented: non-git projects")
 	}
 
-	if p.Git.IsDirty && opts.Reset {
-		// reset
-		{
-			err := p.Git.workTree.Reset(&git.ResetOptions{
-				Mode: git.HardReset,
-			})
-			if err != nil {
-				return fmt.Errorf("reset worktree: %w", err)
+	// check if dirty
+	{
+		if p.Git.IsDirty == nil {
+			if err := p.updateStatus(); err != nil {
+				return fmt.Errorf("update status: %w", err)
 			}
 		}
-		if err := p.updateStatus(); err != nil {
-			return fmt.Errorf("update status: %w", err)
+		if *p.Git.IsDirty && opts.Reset {
+			// reset
+			{
+				err := p.Git.workTree.Reset(&git.ResetOptions{
+					Mode: git.HardReset,
+				})
+				if err != nil {
+					return fmt.Errorf("reset worktree: %w", err)
+				}
+			}
+			if err := p.updateStatus(); err != nil {
+				return fmt.Errorf("update status: %w", err)
+			}
 		}
-	}
-	if p.Git.IsDirty {
-		return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+		if *p.Git.IsDirty {
+			return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+		}
 	}
 
 	if opts.Fetch {
