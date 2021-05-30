@@ -76,6 +76,12 @@ func doAssetsConfigOnce(_ context.Context, path string) error {
 		rawVersions := []string{}
 		for _, release := range releases {
 			if release.GetDraft() || release.GetPrerelease() || len(release.Assets) == 0 {
+				logger.Debug("ignoring release",
+					zap.String("version", release.GetTagName()),
+					zap.Bool("draft", release.GetDraft()),
+					zap.Bool("prerelease", release.GetPrerelease()),
+					zap.Int("assets", len(release.Assets)),
+				)
 				continue
 			}
 			rawVersions = append(rawVersions, release.GetTagName())

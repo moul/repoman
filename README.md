@@ -26,9 +26,9 @@ foo@bar:~$ repoman info .
 {
   "Git": {
     "CloneURL": "git@github.com:moul/repoman",
-    "CurrentBranch": "dev/moul/assets-config",
+    "CurrentBranch": "master",
     "HTMLURL": "https://github.com/moul/repoman",
-    "InMainBranch": false,
+    "InMainBranch": true,
     "IsDirty": null,
     "MainBranch": "master",
     "Metadata": {
