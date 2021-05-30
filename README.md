@@ -20,6 +20,37 @@
 
 ## Usage
 
+[embedmd]:# (.tmp/example-info.txt console)
+```console
+foo@bar:~$ repoman info .
+{
+  "Git": {
+    "CloneURL": "git@github.com:moul/repoman",
+    "CurrentBranch": "master",
+    "HTMLURL": "https://github.com/moul/repoman",
+    "InMainBranch": true,
+    "IsDirty": null,
+    "MainBranch": "master",
+    "Metadata": {
+      "GoModPath": "moul.io/repoman",
+      "HasBinary": true,
+      "HasDocker": true,
+      "HasGo": true,
+      "HasLibrary": false
+    },
+    "OriginRemotes": [
+      "git@github.com:moul/repoman"
+    ],
+    "RepoName": "repoman",
+    "RepoOwner": "moul",
+    "Root": "/home/moul/go/src/moul.io/repoman"
+  },
+  "Path": "/home/moul/go/src/moul.io/repoman"
+}
+```
+
+---
+
 [embedmd]:# (.tmp/usage.txt console)
 ```console
 foo@bar:~$ repoman -h
@@ -51,6 +82,13 @@ FLAGS
   -reset false                reset dirty worktree before applying the changes
   -show-diff true             display git diff of the changes
   -std true                   standard maintenance tasks
+```
+
+[embedmd]:# (.tmp/usage-info.txt console)
+```console
+foo@bar:~$ repoman info -h
+USAGE
+  info [opts] <path...>
 ```
 
 [embedmd]:# (.tmp/usage-template-post-clone.txt console)
