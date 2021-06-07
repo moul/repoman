@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/github/hub/v2 v2.14.3-0.20210319163717-c8e68d548a39
 	github.com/go-git/go-git/v5 v5.4.1
-	github.com/google/go-github/v35 v35.2.0
+	github.com/google/go-github/v35 v35.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
