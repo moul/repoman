@@ -109,6 +109,10 @@ FLAGS
   -template-owner moul                 template owner's name (to change with the new owner)
 ```
 
+## GitHub Actions / Workflows
+
+See the [`moul/repoman-action` repo](https://github.com/moul/repoman-action)
+
 ## Install
 
 ### Using go
