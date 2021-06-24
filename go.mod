@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/peterbourgon/ff/v3 v3.0.0
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/tailscale/depaware v0.0.0-20201214215404-77d1e9757027
+	github.com/tailscale/depaware v0.0.0-20210622194025-720c4b409502
 	go.uber.org/goleak v1.1.10
 	go.uber.org/multierr v1.7.0
 	go.uber.org/zap v1.17.0
@@ -30,6 +30,6 @@ require (
 	moul.io/motd v1.0.0
 	moul.io/multipmuri v1.14.0
 	moul.io/srand v1.6.1
-	moul.io/u v1.24.0
+	moul.io/u v1.25.1
 	moul.io/zapconfig v1.4.0
 )
