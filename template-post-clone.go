@@ -74,7 +74,8 @@ func doTemplatePostCloneOnce(_ context.Context, path string) error {
 				return fmt.Errorf("read Makefile: %w", err)
 			}
 			content = regexp.MustCompile(`(?m)^(DOCKER_IMAGE|GOBINS|NPM_PACKAGES) .=.*\n`).ReplaceAll(content, []byte(""))
-			content = regexp.MustCompile(`(?ms)^generate:.*.PHONY: generate\n\n`).ReplaceAll(content, []byte(""))
+			content = regexp.MustCompile(`(?ms)^generate:.*.PHONY: generate`).ReplaceAll(content, []byte(""))
+			content = regexp.MustCompile(`(?ms)^\n\n\n\n`).ReplaceAll(content, []byte("\n\n"))
 			err = ioutil.WriteFile(path, content, 0)
 			if err != nil {
 				return fmt.Errorf("write file: %q: %w", path, err)
