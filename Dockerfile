@@ -4,7 +4,7 @@ ARG             VCS_REF
 ARG             VERSION
 
 # build
-FROM            golang:1.17.2-alpine as builder
+FROM            golang:1.17.5-alpine as builder
 RUN             apk add --no-cache git gcc musl-dev make
 ENV             GO111MODULE=on
 WORKDIR         /go/src/moul.io/repoman
@@ -14,7 +14,7 @@ COPY            . ./
 RUN             make install
 
 # minimalist runtime
-FROM alpine:3.14
+FROM alpine:3.15
 LABEL           org.label-schema.build-date=$BUILD_DATE \
                 org.label-schema.name="repoman" \
                 org.label-schema.description="" \
