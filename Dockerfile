@@ -14,7 +14,7 @@ COPY            . ./
 RUN             make install
 
 # minimalist runtime
-FROM alpine:3.14
+FROM alpine:3.15
 LABEL           org.label-schema.build-date=$BUILD_DATE \
                 org.label-schema.name="repoman" \
                 org.label-schema.description="" \
