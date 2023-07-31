@@ -46,7 +46,7 @@ type project struct {
 	}
 }
 
-// nolint:nestif,gocognit
+//nolint:nestif,gocognit
 func projectFromPath(path string) (*project, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
@@ -55,7 +55,7 @@ func projectFromPath(path string) (*project, error) {
 	path = abs
 
 	if !u.DirExists(path) {
-		return nil, fmt.Errorf("path is not a directory: %q", path) // nolint:goerr113
+		return nil, fmt.Errorf("path is not a directory: %q", path) //nolint:goerr113
 	}
 
 	project := &project{Path: path}
@@ -230,7 +230,7 @@ func (p *project) prepareWorkspace(opts projectOpts) error {
 			}
 		}
 		if *p.Git.IsDirty {
-			return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") // nolint:goerr113
+			return fmt.Errorf("worktree is dirty, please commit or discard changes before retrying") //nolint:goerr113
 		}
 	}
 
