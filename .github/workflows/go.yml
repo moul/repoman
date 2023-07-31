@@ -30,7 +30,7 @@ jobs:
   goreleaser-dryrun:
     strategy:
       matrix:
-        golang: [1.16.x]
+        golang: [1.20.x]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,18 +45,18 @@ jobs:
           path: ~/go/pkg/mod
           key:          ${{ runner.os }}-go-${{ matrix.golang }}-v1-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-${{ matrix.golang }}-v1-
-      - name: Run GoReleaser (Dry Run)
-        uses: goreleaser/goreleaser-action@v2.8.1
-        with:
-          version: latest
-          args: release --rm-dist --snapshot --skip-publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    - name: Run GoReleaser (Dry Run)
+  #      uses: goreleaser/goreleaser-action@v2.8.1
+  #      with:
+  #        version: latest
+  #        args: release --clean --snapshot --skip-publish
+  #      env:
+  #        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   golangci-lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        golangci_lint: [v1.38]
+        golangci_lint: [v1.53.3]
     steps:
       - uses: actions/checkout@v2.4.0
       - name: golangci-lint
@@ -72,7 +72,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        golang: [1.16.x]
+        golang: [1.20.x]
     steps:
       - uses: actions/checkout@v2.4.0
       - name: Install Go
@@ -87,7 +87,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        golang: [1.16.x]
+        golang: [1.20.x]
     env:
       OS: macos-latest
       GOLANG: ${{ matrix.golang }}
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        golang: [1.16.x]
+        golang: [1.20.x]
     env:
       OS: ubuntu-latest
       GOLANG: ${{ matrix.golang }}

@@ -42,7 +42,7 @@ func doTemplatePostClone(ctx context.Context, args []string) error {
 	return errs
 }
 
-// nolint:gocognit,nestif
+//nolint:gocognit,nestif
 func doTemplatePostCloneOnce(_ context.Context, path string) error {
 	project, err := projectFromPath(path)
 	if err != nil {
