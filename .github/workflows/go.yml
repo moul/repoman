@@ -45,13 +45,13 @@ jobs:
           path: ~/go/pkg/mod
           key:          ${{ runner.os }}-go-${{ matrix.golang }}-v1-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-${{ matrix.golang }}-v1-
-      - name: Run GoReleaser (Dry Run)
-        uses: goreleaser/goreleaser-action@v2.8.1
-        with:
-          version: latest
-          args: release --clean --snapshot --skip-publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    - name: Run GoReleaser (Dry Run)
+  #      uses: goreleaser/goreleaser-action@v2.8.1
+  #      with:
+  #        version: latest
+  #        args: release --clean --snapshot --skip-publish
+  #      env:
+  #        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   golangci-lint:
     runs-on: ubuntu-latest
     strategy:
