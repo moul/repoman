@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/github/hub/v2 v2.14.3-0.20210319163717-c8e68d548a39
-	github.com/go-git/go-git/v5 v5.8.1
+	github.com/go-git/go-git/v5 v5.10.0
 	github.com/google/go-github/v35 v35.3.0
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
@@ -23,7 +23,6 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/mod v0.12.0
 	golang.org/x/sync v0.3.0
-	golang.org/x/tools v0.11.1 // indirect
 	moul.io/motd v1.0.0
 	moul.io/multipmuri v1.14.0
 	moul.io/srand v1.6.1
